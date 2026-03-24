@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 230 15% 5%;
+    --foreground: 220 20% 92%;
+
+    --card: 230 15% 8%;
+    --card-foreground: 220 20% 92%;
+
+    --popover: 230 15% 8%;
+    --popover-foreground: 220 20% 92%;
+
+    --primary: 250 80% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 230 15% 14%;
+    --secondary-foreground: 220 20% 85%;
+
+    --muted: 230 12% 16%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 200 90% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 230 15% 15%;
+    --input: 230 15% 15%;
+    --ring: 250 80% 65%;
+
+    --radius: 0.75rem;
+
+    --neon-blue: 200 90% 55%;
+    --neon-purple: 250 80% 65%;
+    --neon-green: 142 70% 49%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-2xl;
+  }
+
+  .neon-glow-blue {
+    box-shadow: 0 0 20px hsl(var(--neon-blue) / 0.3), 0 0 60px hsl(var(--neon-blue) / 0.1);
+  }
+
+  .neon-glow-purple {
+    box-shadow: 0 0 20px hsl(var(--neon-purple) / 0.3), 0 0 60px hsl(var(--neon-purple) / 0.1);
+  }
+
+  .neon-glow-green {
+    box-shadow: 0 0 15px hsl(var(--neon-green) / 0.3), 0 0 45px hsl(var(--neon-green) / 0.1);
+  }
+
+  .neon-underglow-blue {
+    box-shadow: 0 8px 32px -4px hsl(var(--neon-blue) / 0.25), 0 0 0 1px hsl(var(--neon-blue) / 0.1);
+  }
+
+  .neon-underglow-purple {
+    box-shadow: 0 8px 32px -4px hsl(var(--neon-purple) / 0.25), 0 0 0 1px hsl(var(--neon-purple) / 0.1);
+  }
+
+  .neon-underglow-yellow {
+    box-shadow: 0 8px 32px -4px hsl(45 90% 55% / 0.25), 0 0 0 1px hsl(45 90% 55% / 0.1);
+  }
+}
+
+/* Ambient mesh gradient background */
+@keyframes mesh-drift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 100% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+}
+
+.ambient-mesh {
+  background:
+    radial-gradient(ellipse at 20% 50%, hsl(230 40% 12% / 0.8) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, hsl(260 30% 10% / 0.6) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 80%, hsl(200 30% 8% / 0.5) 0%, transparent 50%),
+    hsl(var(--background));
+  background-size: 200% 200%;
+  animation: mesh-drift 30s ease-in-out infinite;
+}
+
+/* Custom temperature slider */
+input[type="range"].temp-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: hsl(var(--muted));
+  outline: none;
+}
+
+input[type="range"].temp-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: hsl(var(--neon-blue));
+  cursor: pointer;
+  box-shadow: 0 0 10px hsl(var(--neon-blue) / 0.5);
+}
+
+input[type="range"].temp-slider.active {
+  background: linear-gradient(90deg, hsl(var(--neon-blue) / 0.4), hsl(var(--neon-blue)));
+}
