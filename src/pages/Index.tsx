@@ -6,7 +6,12 @@ import LightRelayCard from "@/components/LightRelayCard";
 import ActivityLogCard, { LogEntry } from "@/components/ActivityLogCard";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+const API_TOKEN = import.meta.env.VITE_API_TOKEN;
+
+function authHeaders() {
+  return API_TOKEN ? { "X-API-Token": API_TOKEN } : {};
+}
 
 interface DeviceState {
   light1: boolean;
@@ -15,21 +20,30 @@ interface DeviceState {
 
 async function sendAudioToBackend(blob: Blob) {
   const formData = new FormData();
-  const ext = blob.type.includes("mp4") ? "mp4" : "webm";
-  formData.append("audio", blob, `recording.${ext}`);
+  formData.append("audio", blob, "recording.wav");
   const res = await fetch(`${API_BASE}/api/voice`, {
     method: "POST",
+    headers: authHeaders(),
     body: formData,
   });
+  if (!res.ok) {
+    throw new Error(`Voice request failed: ${res.status}`);
+  }
   return res.json();
 }
 
 async function toggleDevice(deviceId: string, newState: boolean) {
   const res = await fetch(`${API_BASE}/api/devices/control`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
     body: JSON.stringify({ device_id: deviceId, state: newState }),
   });
+  if (!res.ok) {
+    throw new Error(`Control request failed: ${res.status}`);
+  }
   return res.json();
 }
 
@@ -58,6 +72,12 @@ const Index = () => {
       try {
         const data = await sendAudioToBackend(blob);
         setLastCommand(data.transcript || "Command received");
+        if (data.device_state) {
+          setDevices({
+            light1: data.device_state.light1 ?? false,
+            light2: data.device_state.light2 ?? false,
+          });
+        }
         setIsConnected(true);
         addLog(data.transcript || "Voice command processed", "command");
         toast.success("Voice command processed");
@@ -79,7 +99,12 @@ const Index = () => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/devices/status`);
+        const res = await fetch(`${API_BASE}/api/devices/status`, {
+          headers: authHeaders(),
+        });
+        if (!res.ok) {
+          throw new Error(`Status request failed: ${res.status}`);
+        }
         const data = await res.json();
         setDevices({
           light1: data.light1 ?? false,
@@ -100,7 +125,13 @@ const Index = () => {
     setDevices((prev) => ({ ...prev, [id]: val }));
     addLog(`${label} turned ${val ? "on" : "off"}`, "device");
     try {
-      await toggleDevice(id, val);
+      const data = await toggleDevice(id, val);
+      if (data.device_state) {
+        setDevices({
+          light1: data.device_state.light1 ?? false,
+          light2: data.device_state.light2 ?? false,
+        });
+      }
       toast.success(`${label} turned ${val ? "on" : "off"}`);
     } catch {
       toast.error(`Failed to toggle ${label}`);

@@ -1,5 +1,6 @@
 import { Mic, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { KeyboardEvent } from "react";
 
 interface VoiceEngineProps {
   isRecording: boolean;
@@ -35,6 +36,20 @@ const VoiceEngine = ({
   onPointerDown,
   onPointerUp,
 }: VoiceEngineProps) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if ((event.key === " " || event.key === "Enter") && !event.repeat) {
+      event.preventDefault();
+      onPointerDown();
+    }
+  };
+
+  const handleKeyUp = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      onPointerUp();
+    }
+  };
+
   return (
     <div className="glass-card col-span-1 md:col-span-2 p-8 flex flex-col items-center gap-6">
       <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
@@ -46,9 +61,13 @@ const VoiceEngine = ({
         <AnimatePresence>{isRecording && <SonarRings />}</AnimatePresence>
 
         <motion.button
+          type="button"
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
           onPointerLeave={onPointerUp}
+          onBlur={onPointerUp}
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
           onContextMenu={(e) => e.preventDefault()}
           whileTap={{ scale: 0.92 }}
           style={{ touchAction: "none" }}

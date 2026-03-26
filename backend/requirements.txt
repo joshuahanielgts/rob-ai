@@ -3,3 +3,5 @@ uvicorn
 vosk
 ollama
 requests
+python-multipart
+pytest
