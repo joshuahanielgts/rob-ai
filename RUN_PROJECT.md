@@ -43,14 +43,19 @@ cd ..
 Create root `.env` file:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=
 VITE_API_TOKEN=
 ```
+
+Notes:
+
+- Leave `VITE_API_BASE_URL` empty in local development to use Vite proxy.
+- Frontend calls `/api/*` through the dev server, which forwards to `http://localhost:8000`.
 
 Optional backend env vars (set in terminal before running backend):
 
 ```powershell
-$env:ALLOWED_ORIGINS="http://localhost:8080,http://127.0.0.1:8080"
+$env:ALLOWED_ORIGINS="http://localhost:8080,http://127.0.0.1:8080,http://localhost:8081,http://127.0.0.1:8081"
 $env:ROB_AI_API_TOKEN=""
 $env:ESP_IP="http://192.168.1.50"
 $env:OLLAMA_MODEL="llama3.1:8b"
@@ -113,8 +118,8 @@ Expected output (example):
 
 ```text
 VITE v5.x.x  ready in ... ms
-Local:   http://localhost:8080/
-Network: http://<your-ip>:8080/
+Local:   http://localhost:8080/   (or 8081 if 8080 is busy)
+Network: http://<your-ip>:<port>/
 ```
 
 ## 7. Verify Backend Health
@@ -131,6 +136,20 @@ Expected output:
 status
 ------
 ok
+```
+
+Check AI/runtime dependencies:
+
+```powershell
+Invoke-RestMethod http://localhost:8000/api/health/dependencies
+```
+
+Expected fields:
+
+```text
+vosk_model_exists
+ollama_service_reachable
+ollama_model_available
 ```
 
 ## 8. Verify Build, Lint, and Tests
@@ -158,12 +177,12 @@ npm run test
 -> Passed (1 passed test file, 3 passed tests)
 
 python -m pytest backend/tests -q
--> Passed (6 passed)
+-> Passed (7 passed)
 ```
 
 ## 9. Use the App
 
-1. Open http://localhost:8080.
+1. Open the Local URL printed by Vite (`http://localhost:8080` or `http://localhost:8081`).
 2. Hold the mic button to speak (or use keyboard: Enter/Space while focused).
 3. Watch activity log and device toggles update.
 
@@ -172,7 +191,12 @@ python -m pytest backend/tests -q
 ### Backend unreachable from frontend
 
 - Check backend is running on port 8000.
-- Confirm `VITE_API_BASE_URL` is `http://localhost:8000`.
+- In local dev, set `VITE_API_BASE_URL=` (blank) and restart `npm run dev`.
+- Verify frontend proxy works:
+
+```powershell
+curl.exe -i http://localhost:<vite-port>/api/health
+```
 
 ### `/api/health` returns `{"detail":"Not Found"}`
 
@@ -238,7 +262,7 @@ ok
 
 ### No intent/device action
 
-- Confirm Ollama is running.
+- If `ollama serve` says port already in use, Ollama is already running.
 - Confirm model is available: `ollama list` should include `llama3.1:8b`.
 
 ### ESP relay not toggling hardware

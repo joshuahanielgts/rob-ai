@@ -21,6 +21,13 @@ def test_health_returns_ok() -> None:
     assert backend_main.health() == {"status": "ok"}
 
 
+def test_dependency_health_shape() -> None:
+    payload = backend_main.dependency_health()
+    assert "vosk_model_exists" in payload
+    assert "ollama_service_reachable" in payload
+    assert "ollama_model_available" in payload
+
+
 def test_apply_device_action_updates_state(monkeypatch) -> None:
     monkeypatch.setattr(backend_main, "_call_esp", lambda *_: True)
     ok = backend_main._apply_device_action("light1", "on")

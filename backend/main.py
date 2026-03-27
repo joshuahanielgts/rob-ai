@@ -185,9 +185,39 @@ def _infer_intent(transcript: str) -> Intent | None:
     return None
 
 
+def _check_ollama_health() -> dict[str, bool]:
+    try:
+        response = requests.get("http://127.0.0.1:11434/api/tags", timeout=2)
+        response.raise_for_status()
+        payload = response.json()
+        models = payload.get("models", [])
+        model_names = {
+            str(item.get("name", "")) for item in models if isinstance(item, dict)
+        }
+        return {
+            "service_reachable": True,
+            "model_available": any(name.startswith(LLM) for name in model_names),
+        }
+    except Exception:
+        return {
+            "service_reachable": False,
+            "model_available": False,
+        }
+
+
 @app.get("/api/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/api/health/dependencies")
+def dependency_health() -> dict[str, bool]:
+    ollama = _check_ollama_health()
+    return {
+        "vosk_model_exists": os.path.exists(MODEL_PATH),
+        "ollama_service_reachable": ollama["service_reachable"],
+        "ollama_model_available": ollama["model_available"],
+    }
 
 
 @app.get("/api/devices/status")

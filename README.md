@@ -92,6 +92,9 @@ ollama pull llama3.1:8b
 - `GET /api/health`
 	- Returns service health.
 
+- `GET /api/health/dependencies`
+	- Returns integration health for Vosk and Ollama model runtime.
+
 - `GET /api/devices/status`
 	- Returns current in-memory device state:
 	- `{ "light1": boolean, "light2": boolean }`
